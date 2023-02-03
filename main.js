@@ -4,70 +4,85 @@ import * as THREE from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
+
+
+let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium;
+
 //サイズ
-const sizes = {
+let sizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
 
-/**
- * 必須の三要素
- */
+window.addEventListener("load", init);
 
-//シーン
-const scene = new THREE.Scene();
+function init() {
+  //シーン
+  scene = new THREE.Scene();
 
-//カメラ
-const camera = new THREE.PerspectiveCamera(
-  75,
-  sizes.width / sizes.height,
-  0.1,
-  1000
-);
+  //カメラ
+  camera = new THREE.PerspectiveCamera(
+    75,
+    sizes.width / sizes.height,
+    0.1,
+    1000
+  );
 
-camera.position.set(0, 150, 150);
-scene.add(camera);
+  camera.position.set(0, 150, 150);
+  scene.add(camera);
 
-//レンダラー
-const renderer = new THREE.WebGLRenderer({
-  canvas: canvas,
-  alpha: true,
+  //レンダラー
+  renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    alpha: true,
 
-});
+  });
 
-renderer.setSize(sizes.width, sizes.height);
-renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(window.devicePixelRatio);
 
-//マテリアル
-const physicalMaterial = new THREE.MeshPhysicalMaterial({
-  color: "#3c94d7",
-  metalness: 0.865,
-  roughness: 0.373,
-  flatShading: true,
-});
+  //マテリアル
+  physicalMaterial = new THREE.MeshPhysicalMaterial({
+    color: "#3c94d7",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  });
 
-const normalMaterial = new THREE.MeshNormalMaterial({
-  wireframe: true,
-});
+  const normalMaterial = new THREE.MeshNormalMaterial({
+    wireframe: true,
+  });
 
-//ジオメトリ
-const octahedronGeometry = new THREE.OctahedronGeometry(5);
-const sphereGeometry = new THREE.SphereGeometry(100, 32, 16);
+  //ジオメトリ
+  octahedronGeometry = new THREE.OctahedronGeometry(5);
+  sphereGeometry = new THREE.SphereGeometry(100, 32, 16);
 
-// //メッシュ
-const aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
-scene.add(aquarium);
+  // //メッシュ
+  aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
+  scene.add(aquarium);
 
-//カメラの方向
-camera.lookAt(aquarium.position);
+  //カメラの方向
+  camera.lookAt(aquarium.position);
 
-//ライト
-const directionalLight = new THREE.DirectionalLight("#ffffff", 4);
-directionalLight.position.set(0.5, 1, 0);
-scene.add(directionalLight);
+  //ライト
+  const directionalLight = new THREE.DirectionalLight("#ffffff", 4);
+  directionalLight.position.set(0.5, 1, 0);
+  scene.add(directionalLight);
+
+  //biontを作成
+  for (let i = 0; i < 300; i++) {
+    boids.push(
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i)
+    );
+  }
+
+  window.addEventListener("resize", onWindowResize)
+
+  animate();
+}
 
 //リサイズ
-window.addEventListener("resize", () => {
+function onWindowResize(){
   // サイズをアップデート
   sizes.width = window.innerWidth;
   sizes.height = window.innerHeight;
@@ -79,7 +94,7 @@ window.addEventListener("resize", () => {
   // レンダラーをアップデート
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(window.devicePixelRatio);
-});
+};
 
 const boids = [];
 const radius = 5;
@@ -227,14 +242,8 @@ class Biont {
   }
 }
 
-for (let i = 0; i < 300; i++) {
-  boids.push(
-    new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i)
-  );
-}
-
 //アニメーション
-const animate = () => {
+function animate() {
   // Call tick again on the next frame
   window.requestAnimationFrame(animate);
 
@@ -248,4 +257,3 @@ const animate = () => {
   renderer.render(scene, camera);
 }
 
-animate();
