@@ -5,7 +5,7 @@ import { TorusGeometry } from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
-let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, boxGeometry;
+let scene, camera, renderer, physicalMaterial_red, physicalMaterial_blue, physicalMaterial_purple, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, boxGeometry;
 
 //サイズ
 let sizes = {
@@ -99,6 +99,7 @@ class Biont {
     this.getAverageVelocityVector();
     this.isInTheArea();
     this.update();
+    this.setFaceDirection();
 
     this.object.position.x = this.x
     this.object.position.y = this.y
@@ -166,6 +167,9 @@ class Biont {
       this.z += this.vz;
     }
   }
+  setFaceDirection() {
+    this.object.lookAt(new THREE.Vector3(this.x, this.y, this.z));
+  }
 }
 
 //(x0, y0, z0)と(x1, y1, z1)の距離を返す
@@ -214,8 +218,20 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
 
   //マテリアル
-  physicalMaterial = new THREE.MeshPhysicalMaterial({
-    color: "#3c94d7",
+  physicalMaterial_red = new THREE.MeshPhysicalMaterial({
+    color: "#ff0000",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  });
+  physicalMaterial_blue = new THREE.MeshPhysicalMaterial({
+    color: "#0000ff",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  });
+  physicalMaterial_purple = new THREE.MeshPhysicalMaterial({
+    color: "#800080",
     metalness: 0.865,
     roughness: 0.373,
     flatShading: true,
@@ -246,19 +262,19 @@ function init() {
   //biontを作成
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", octahedronGeometry, physicalMaterial, params1)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", boxGeometry, physicalMaterial_red, params1)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", sphereGeometry_biond, physicalMaterial, params2)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", boxGeometry, physicalMaterial_blue, params2)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name3", boxGeometry, physicalMaterial, params3)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name3", boxGeometry, physicalMaterial_purple, params3)
     );
   }
 
