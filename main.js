@@ -23,10 +23,10 @@ const NUMBER_OF_BOIDS = 3;
 
 let params1 = {
   MAX_SPEED: 4,
-  WEIGHT_TO_FIRST_CONDITION: 0.01, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  WEIGHT_TO_FIRST_CONDITION: 0.001, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
+  WEIGHT_TO_SECOND_CONDITION: 0.8, //条件2 他の個体と衝突しないこと
   PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.05 //条件3 全体の流れに沿って動くこと
+  WEIGHT_TO_THIRD_CONDITION: 0.1 //条件3 全体の流れに沿って動くこと
 }
 let params2 = {
   MAX_SPEED: 2,
@@ -231,7 +231,7 @@ function init() {
     flatShading: true,
   });
   physicalMaterial_purple = new THREE.MeshPhysicalMaterial({
-    color: "#800080",
+    color: "#4b0082",
     metalness: 0.865,
     roughness: 0.373,
     flatShading: true,
@@ -262,7 +262,7 @@ function init() {
   //biontを作成
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", boxGeometry, physicalMaterial_red, params1)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name1", boxGeometry, physicalMaterial_red, params1)
     );
   }
 
