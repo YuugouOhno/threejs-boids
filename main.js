@@ -18,13 +18,13 @@ window.addEventListener("load", init);
 const boids = [];
 const NUMBER = 100 //魚の数
 const AREA_OF_MOVE = 100; //これより外に行かない
-const MAX_SPEED = 2;
+const MAX_SPEED = 4;
 const BIONT_SIZE = 5;
 
 const WEIGHT_TO_FIRST_CONDITION = 0.001; //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-const WEIGHT_TO_SECOND_CONDITION = 0.9; //条件2 他の個体と衝突しないこと
+const WEIGHT_TO_SECOND_CONDITION = 0.8; //条件2 他の個体と衝突しないこと
 const PERSPNAL_SPACE = 5; //これより近いと避ける
-const WEIGHT_TO_THIRD_CONDITION = 0.05; //条件3 全体の流れに沿って動くこと
+const WEIGHT_TO_THIRD_CONDITION = 0.1; //条件3 全体の流れに沿って動くこと
 
 class Biont {
   constructor(x, y, z, vx, vy, vz, id, name) {
@@ -96,9 +96,9 @@ class Biont {
       center.y += biont.y;
       center.z += biont.z;
     });
-    center.x /= boids.length/2 - 1;
-    center.y /= boids.length/2 - 1;
-    center.z /= boids.length/2 - 1;
+    center.x /= boids.length - 1;
+    center.y /= boids.length - 1;
+    center.z /= boids.length - 1;
 
     this.v1.x = center.x - this.x;
     this.v1.y = center.y - this.y;
@@ -227,12 +227,6 @@ function init() {
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
       new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name1")
-    );
-  }
-
-  for (let i = 0; i < NUMBER; i++) {
-    boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2")
     );
   }
 
