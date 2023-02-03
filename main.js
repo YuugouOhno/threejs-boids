@@ -6,6 +6,7 @@ import { TorusGeometry } from "three";
 const canvas = document.querySelector(".webgl");
 
 let scene, camera, renderer, physicalMaterial_red, physicalMaterial_blue, physicalMaterial_purple, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, boxGeometry;
+let rot = 0;
 
 //サイズ
 let sizes = {
@@ -186,7 +187,15 @@ function animate() {
     biont.draw();
   });
 
+  rot += 0.05; // 毎フレーム角度を0.5度ずつ足していく
+  // ラジアンに変換する
+  const radian = (rot * Math.PI) / 180;
+  // 角度に応じてカメラの位置を設定
+  camera.position.x = 150 * Math.sin(radian);
+  camera.position.z = 150 * Math.cos(radian);
+  //カメラの向きを指定
   camera.lookAt(aquarium.position);
+
 
   // Render
   renderer.render(scene, camera);
