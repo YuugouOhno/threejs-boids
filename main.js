@@ -5,7 +5,7 @@ import { TorusGeometry } from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
-let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, torusGeometry, boxGeometry;
+let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, boxGeometry;
 
 //サイズ
 let sizes = {
@@ -18,17 +18,39 @@ window.addEventListener("load", init);
 const boids = [];
 const NUMBER = 100 //魚の数
 const AREA_OF_MOVE = 100; //これより外に行かない
-const MAX_SPEED = 2;
 const BIONT_SIZE = 5;
-const NUMBER_OF_BOIDS = 4;
+const NUMBER_OF_BOIDS = 3;
 
-const WEIGHT_TO_FIRST_CONDITION = 0.001; //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-const WEIGHT_TO_SECOND_CONDITION = 0.9; //条件2 他の個体と衝突しないこと
-const PERSPNAL_SPACE = 5; //これより近いと避ける
-const WEIGHT_TO_THIRD_CONDITION = 0.05; //条件3 全体の流れに沿って動くこと
+let params1 = {
+  MAX_SPEED: 4,
+  WEIGHT_TO_FIRST_CONDITION: 0.01, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
+  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  PERSPNAL_SPACE: 5,//これより近いと避ける
+  WEIGHT_TO_THIRD_CONDITION: 0.05 //条件3 全体の流れに沿って動くこと
+}
+let params2 = {
+  MAX_SPEED: 2,
+  WEIGHT_TO_FIRST_CONDITION: 0.005, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
+  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  PERSPNAL_SPACE: 5,//これより近いと避ける
+  WEIGHT_TO_THIRD_CONDITION: 0.1 //条件3 全体の流れに沿って動くこと
+}
+
+let params3 = {
+  MAX_SPEED: 4,
+  WEIGHT_TO_FIRST_CONDITION: 0.001, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
+  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  PERSPNAL_SPACE: 5,//これより近いと避ける
+  WEIGHT_TO_THIRD_CONDITION: 0.05 //条件3 全体の流れに沿って動くこと
+}
 
 class Biont {
-  constructor(x, y, z, vx, vy, vz, id, name, geometry, material) {
+  constructor(x, y, z, vx, vy, vz, id, name, geometry, material, params) {
+    this.MAX_SPEED = params.MAX_SPEED;
+    this.WEIGHT_TO_FIRST_CONDITION = params.WEIGHT_TO_FIRST_CONDITION; //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
+    this.WEIGHT_TO_SECOND_CONDITION = params.WEIGHT_TO_SECOND_CONDITION; //条件2 他の個体と衝突しないこと
+    this.PERSPNAL_SPACE = params.PERSPNAL_SPACE; //これより近いと避ける
+    this.WEIGHT_TO_THIRD_CONDITION = params.WEIGHT_TO_THIRD_CONDITION; //条件3 全体の流れに沿って動くこと
     this.name = name;
     this.x = x; // 個体のx座標
     this.y = y; // 個体のy座標
@@ -52,16 +74,16 @@ class Biont {
     scene.add(this.object);
   }
   update() {
-    this.vx += WEIGHT_TO_FIRST_CONDITION * this.v1.x + WEIGHT_TO_SECOND_CONDITION * this.v2.x + WEIGHT_TO_THIRD_CONDITION * this.v3.x;
-    this.vy += WEIGHT_TO_FIRST_CONDITION * this.v1.y + WEIGHT_TO_SECOND_CONDITION * this.v2.y + WEIGHT_TO_THIRD_CONDITION * this.v3.y;
-    this.vz += WEIGHT_TO_FIRST_CONDITION * this.v1.z + WEIGHT_TO_SECOND_CONDITION * this.v2.z + WEIGHT_TO_THIRD_CONDITION * this.v3.z;
+    this.vx += this.WEIGHT_TO_FIRST_CONDITION * this.v1.x + this.WEIGHT_TO_SECOND_CONDITION * this.v2.x + this.WEIGHT_TO_THIRD_CONDITION * this.v3.x;
+    this.vy += this.WEIGHT_TO_FIRST_CONDITION * this.v1.y + this.WEIGHT_TO_SECOND_CONDITION * this.v2.y + this.WEIGHT_TO_THIRD_CONDITION * this.v3.y;
+    this.vz += this.WEIGHT_TO_FIRST_CONDITION * this.v1.z + this.WEIGHT_TO_SECOND_CONDITION * this.v2.z + this.WEIGHT_TO_THIRD_CONDITION * this.v3.z;
 
     // 最高速度を設定
     const movement = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
-    if (movement > MAX_SPEED) {
-      this.vx = (this.vx / movement) * MAX_SPEED;
-      this.vy = (this.vy / movement) * MAX_SPEED;
-      this.vz = (this.vz / movement) * MAX_SPEED;
+    if (movement > this.MAX_SPEED) {
+      this.vx = (this.vx / movement) * this.MAX_SPEED;
+      this.vy = (this.vy / movement) * this.MAX_SPEED;
+      this.vz = (this.vz / movement) * this.MAX_SPEED;
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -106,7 +128,7 @@ class Biont {
    */
   getAvoidanceVector() {
     boids.filter(
-      biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < PERSPNAL_SPACE && this.name === biont.name
+      biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < this.PERSPNAL_SPACE && this.name === biont.name
     ).forEach(biont => {
       this.v2.x -= biont.x - this.x;
       this.v2.y -= biont.y - this.y;
@@ -206,8 +228,7 @@ function init() {
   //ジオメトリ
   octahedronGeometry = new THREE.OctahedronGeometry(BIONT_SIZE);
   sphereGeometry_biond = new THREE.SphereGeometry(BIONT_SIZE * 0.7, 32, 16);
-  torusGeometry = new THREE.TorusGeometry(BIONT_SIZE);
-  boxGeometry = new THREE.BoxGeometry(BIONT_SIZE,BIONT_SIZE,BIONT_SIZE);
+  boxGeometry = new THREE.BoxGeometry(BIONT_SIZE, BIONT_SIZE, BIONT_SIZE);
   sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE, 32, 16);
 
   // //メッシュ
@@ -225,25 +246,19 @@ function init() {
   //biontを作成
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", octahedronGeometry, physicalMaterial)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", octahedronGeometry, physicalMaterial, params1)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", sphereGeometry_biond, physicalMaterial)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", sphereGeometry_biond, physicalMaterial, params2)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name3", torusGeometry, physicalMaterial)
-    );
-  }
-
-  for (let i = 0; i < NUMBER; i++) {
-    boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name4", boxGeometry, physicalMaterial)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name3", boxGeometry, physicalMaterial, params3)
     );
   }
 
