@@ -5,7 +5,7 @@ import { TorusGeometry } from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
-let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond;
+let scene, camera, renderer, physicalMaterial, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, torusGeometry, boxGeometry;
 
 //サイズ
 let sizes = {
@@ -20,6 +20,7 @@ const NUMBER = 100 //魚の数
 const AREA_OF_MOVE = 100; //これより外に行かない
 const MAX_SPEED = 2;
 const BIONT_SIZE = 5;
+const NUMBER_OF_BOIDS = 4;
 
 const WEIGHT_TO_FIRST_CONDITION = 0.001; //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
 const WEIGHT_TO_SECOND_CONDITION = 0.9; //条件2 他の個体と衝突しないこと
@@ -27,7 +28,7 @@ const PERSPNAL_SPACE = 5; //これより近いと避ける
 const WEIGHT_TO_THIRD_CONDITION = 0.05; //条件3 全体の流れに沿って動くこと
 
 class Biont {
-  constructor(x, y, z, vx, vy, vz, id, name) {
+  constructor(x, y, z, vx, vy, vz, id, name, geometry, material) {
     this.name = name;
     this.x = x; // 個体のx座標
     this.y = y; // 個体のy座標
@@ -42,12 +43,8 @@ class Biont {
     this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
 
     //メッシュ
-    if (this.name == "name1") {
-      this.object = new THREE.Mesh(octahedronGeometry, physicalMaterial);
-    } else {
-      this.object = new THREE.Mesh(sphereGeometry_biond, physicalMaterial);
-    }
-    
+    this.object = new THREE.Mesh(geometry, material);
+
     //初期位置
     this.object.position.x = this.x
     this.object.position.y = this.y
@@ -96,9 +93,9 @@ class Biont {
       center.y += biont.y;
       center.z += biont.z;
     });
-    center.x /= boids.length/2 - 1;
-    center.y /= boids.length/2 - 1;
-    center.z /= boids.length/2 - 1;
+    center.x /= boids.length / NUMBER_OF_BOIDS - 1;
+    center.y /= boids.length / NUMBER_OF_BOIDS - 1;
+    center.z /= boids.length / NUMBER_OF_BOIDS - 1;
 
     this.v1.x = center.x - this.x;
     this.v1.y = center.y - this.y;
@@ -181,7 +178,7 @@ function init() {
     1000
   );
 
-  camera.position.set(0, AREA_OF_MOVE*1.2, AREA_OF_MOVE*1.2);
+  camera.position.set(0, AREA_OF_MOVE * 1.2, AREA_OF_MOVE * 1.2);
   scene.add(camera);
 
   //レンダラー
@@ -208,7 +205,9 @@ function init() {
 
   //ジオメトリ
   octahedronGeometry = new THREE.OctahedronGeometry(BIONT_SIZE);
-  sphereGeometry_biond = new THREE.SphereGeometry(BIONT_SIZE*0.7, 32, 16);
+  sphereGeometry_biond = new THREE.SphereGeometry(BIONT_SIZE * 0.7, 32, 16);
+  torusGeometry = new THREE.TorusGeometry(BIONT_SIZE);
+  boxGeometry = new THREE.BoxGeometry(BIONT_SIZE,BIONT_SIZE,BIONT_SIZE);
   sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE, 32, 16);
 
   // //メッシュ
@@ -226,13 +225,25 @@ function init() {
   //biontを作成
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name1")
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name1", octahedronGeometry, physicalMaterial)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2")
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", sphereGeometry_biond, physicalMaterial)
+    );
+  }
+
+  for (let i = 0; i < NUMBER; i++) {
+    boids.push(
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 20, 20, 20, i, "name3", torusGeometry, physicalMaterial)
+    );
+  }
+
+  for (let i = 0; i < NUMBER; i++) {
+    boids.push(
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name4", boxGeometry, physicalMaterial)
     );
   }
 
