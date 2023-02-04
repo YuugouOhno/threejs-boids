@@ -5,7 +5,7 @@ import { TorusGeometry } from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
-let scene, camera, renderer, physicalMaterial_red, physicalMaterial_blue, physicalMaterial_purple, octahedronGeometry, sphereGeometry, aquarium, sphereGeometry_biond, boxGeometry;
+let scene, camera, renderer, sphereGeometry, aquarium;
 let rot = 0;
 
 //サイズ
@@ -19,40 +19,64 @@ window.addEventListener("load", init);
 const boids = [];
 const NUMBER = 100 //魚の数
 const AREA_OF_MOVE = 100; //これより外に行かない
-const BIONT_SIZE = 5;
-const NUMBER_OF_BOIDS = 3;
+const type_of_bois = [];
 
 let params1 = {
+  TYPE: "red",
   MAX_SPEED: 5,
-  WEIGHT_TO_FIRST_CONDITION: 0.8, //条件1
-  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
-  PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.001 //条件3
+  WEIGHT_TO_FIRST_CONDITION: 0.8, //条件1　回避
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2　整列
+  PERSONAL_SPACE: 5,
+  WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3　集合
+  MATERIAL: new THREE.MeshPhysicalMaterial({
+    color: "#ff0000",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  }),
+  GEOMETRY: new THREE.BoxGeometry(5, 5, 10),
 }
 let params2 = {
+  TYPE: "blue",
   MAX_SPEED: 2,
-  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1
-  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
-  PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.005 //条件3
+  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1　回避
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2　整列
+  PERSONAL_SPACE: 5,
+  WEIGHT_TO_THIRD_CONDITION: 0.005, //条件3　集合
+  MATERIAL: new THREE.MeshPhysicalMaterial({
+    color: "#0000ff",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  }),
+  GEOMETRY: new THREE.BoxGeometry(3, 3, 5),
 }
-
 let params3 = {
+  TYPE: "purple",
   MAX_SPEED: 4,
-  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1 
-  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
-  PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.001 //条件3
+  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1 回避
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2 整列
+  PERSONAL_SPACE: 5,
+  WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3 集合
+  MATERIAL: new THREE.MeshPhysicalMaterial({
+    color: "#4b0082",
+    metalness: 0.865,
+    roughness: 0.373,
+    flatShading: true,
+  }),
+  GEOMETRY: new THREE.BoxGeometry(5, 10, 15),
 }
 
 class Biont {
-  constructor(x, y, z, vx, vy, vz, id, name, geometry, material, params) {
-    this.MAX_SPEED = params.MAX_SPEED;
-    this.WEIGHT_TO_FIRST_CONDITION = params.WEIGHT_TO_FIRST_CONDITION; //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-    this.WEIGHT_TO_SECOND_CONDITION = params.WEIGHT_TO_SECOND_CONDITION; //条件2 他の個体と衝突しないこと
-    this.PERSPNAL_SPACE = params.PERSPNAL_SPACE; //これより近いと避ける
-    this.WEIGHT_TO_THIRD_CONDITION = params.WEIGHT_TO_THIRD_CONDITION; //条件3 全体の流れに沿って動くこと
-    this.name = name;
+  constructor(x, y, z, vx, vy, vz, id, params) {
+    this.max_speed = params.MAX_SPEED;
+    this.weight_to_first_condition = params.WEIGHT_TO_FIRST_CONDITION; //条件1 回避
+    this.weight_to_second_condition = params.WEIGHT_TO_SECOND_CONDITION; //条件2 整列
+    this.personal_space = params.PERSONAL_SPACE; //これより近いと避ける
+    this.weight_to_third_condition = params.WEIGHT_TO_THIRD_CONDITION; //条件3 集合
+
+    this.type = params.TYPE;
+
     this.x = x; // 個体のx座標
     this.y = y; // 個体のy座標
     this.z = z; // 個体のz座標
@@ -66,25 +90,29 @@ class Biont {
     this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
 
     //メッシュ
-    this.object = new THREE.Mesh(geometry, material);
+    this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
 
     //初期位置
     this.object.position.x = this.x
     this.object.position.y = this.y
     this.object.position.z = this.z
     scene.add(this.object);
+
+    if (!type_of_bois.includes(this.type)) {
+      type_of_bois.push(this.type);
+    };
   }
   update() {
-    this.vx += this.WEIGHT_TO_FIRST_CONDITION * this.v1.x + this.WEIGHT_TO_SECOND_CONDITION * this.v2.x + this.WEIGHT_TO_THIRD_CONDITION * this.v3.x;
-    this.vy += this.WEIGHT_TO_FIRST_CONDITION * this.v1.y + this.WEIGHT_TO_SECOND_CONDITION * this.v2.y + this.WEIGHT_TO_THIRD_CONDITION * this.v3.y;
-    this.vz += this.WEIGHT_TO_FIRST_CONDITION * this.v1.z + this.WEIGHT_TO_SECOND_CONDITION * this.v2.z + this.WEIGHT_TO_THIRD_CONDITION * this.v3.z;
+    this.vx += this.weight_to_first_condition * this.v1.x + this.weight_to_second_condition * this.v2.x + this.weight_to_third_condition * this.v3.x;
+    this.vy += this.weight_to_first_condition * this.v1.y + this.weight_to_second_condition * this.v2.y + this.weight_to_third_condition * this.v3.y;
+    this.vz += this.weight_to_first_condition * this.v1.z + this.weight_to_second_condition * this.v2.z + this.weight_to_third_condition * this.v3.z;
 
     // 最高速度を設定
     const movement = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
     if (movement > this.MAX_SPEED) {
-      this.vx = (this.vx / movement) * this.MAX_SPEED;
-      this.vy = (this.vy / movement) * this.MAX_SPEED;
-      this.vz = (this.vz / movement) * this.MAX_SPEED;
+      this.vx = (this.vx / movement) * this.max_speed;
+      this.vy = (this.vy / movement) * this.max_speed;
+      this.vz = (this.vz / movement) * this.max_speed;
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -95,7 +123,7 @@ class Biont {
     this.v2 = { x: 0, y: 0, z: 0 };
     this.v3 = { x: 0, y: 0, z: 0 };
 
-    
+
     this.getAvoidanceVector(); // 衝突回避
     this.getAverageVelocityVector(); // 整列
     this.getToCenterVector(); // 向心運動
@@ -107,13 +135,13 @@ class Biont {
     this.object.position.y = this.y
     this.object.position.z = this.z
   }
-  
+
   /**
    * DIST_THRESHOLD内に仲間がいると避けます
    */
   getAvoidanceVector() {
     boids.filter(
-      biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < this.PERSPNAL_SPACE && this.name === biont.name
+      biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < this.personal_space && this.type === biont.type
     ).forEach(biont => {
       this.v1.x -= biont.x - this.x;
       this.v1.y -= biont.y - this.y;
@@ -121,12 +149,12 @@ class Biont {
     });
   }
   /**
-   * 集団の速度の平均に近づけます
+   * 集団のベクトルの平均
    */
   getAverageVelocityVector() {
     // avgVに各個体の速度の平均を代入します
     const avgV = { x: 0, y: 0, z: 0 };
-    boids.filter(biont => this.id !== biont.id && this.name === biont.name).forEach(biont => {
+    boids.filter(biont => this.id !== biont.id && this.type === biont.type).forEach(biont => {
       avgV.x += biont.vx;
       avgV.y += biont.vy;
       avgV.z += biont.vz;
@@ -144,14 +172,14 @@ class Biont {
   getToCenterVector() {
     // 他の個体の座標の平均をgetToCenterVectorに代入します
     const center = { x: 0, y: 0, z: 0 };
-    boids.filter(biont => this.id !== biont.id && this.name === biont.name).forEach(biont => {
+    boids.filter(biont => this.id !== biont.id && this.type === biont.type).forEach(biont => {
       center.x += biont.x;
       center.y += biont.y;
       center.z += biont.z;
     });
-    center.x /= (boids.length / NUMBER_OF_BOIDS - 1);
-    center.y /= (boids.length / NUMBER_OF_BOIDS - 1);
-    center.z /= (boids.length / NUMBER_OF_BOIDS - 1);
+    center.x /= (boids.length / type_of_bois.length - 1);
+    center.y /= (boids.length / type_of_bois.length - 1);
+    center.z /= (boids.length / type_of_bois.length - 1);
 
     this.v3.x = center.x - this.x;
     this.v3.y = center.y - this.y;
@@ -229,34 +257,11 @@ function init() {
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(window.devicePixelRatio);
 
-  //マテリアル
-  physicalMaterial_red = new THREE.MeshPhysicalMaterial({
-    color: "#ff0000",
-    metalness: 0.865,
-    roughness: 0.373,
-    flatShading: true,
-  });
-  physicalMaterial_blue = new THREE.MeshPhysicalMaterial({
-    color: "#0000ff",
-    metalness: 0.865,
-    roughness: 0.373,
-    flatShading: true,
-  });
-  physicalMaterial_purple = new THREE.MeshPhysicalMaterial({
-    color: "#4b0082",
-    metalness: 0.865,
-    roughness: 0.373,
-    flatShading: true,
-  });
-
   const normalMaterial = new THREE.MeshNormalMaterial({
     wireframe: true,
   });
 
   //ジオメトリ
-  octahedronGeometry = new THREE.OctahedronGeometry(BIONT_SIZE);
-  sphereGeometry_biond = new THREE.SphereGeometry(BIONT_SIZE * 0.7, 32, 16);
-  boxGeometry = new THREE.BoxGeometry(BIONT_SIZE, BIONT_SIZE, BIONT_SIZE);
   sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE, 32, 16);
 
   // //メッシュ
@@ -274,19 +279,19 @@ function init() {
   //biontを作成
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name1", boxGeometry, physicalMaterial_red, params1)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, params1)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name2", boxGeometry, physicalMaterial_blue, params2)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, params2)
     );
   }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, "name3", boxGeometry, physicalMaterial_purple, params3)
+      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 2, 2, 2, i, params3)
     );
   }
 
