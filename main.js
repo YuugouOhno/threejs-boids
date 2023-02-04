@@ -23,26 +23,26 @@ const BIONT_SIZE = 5;
 const NUMBER_OF_BOIDS = 3;
 
 let params1 = {
-  MAX_SPEED: 4,
-  WEIGHT_TO_FIRST_CONDITION: 0.001, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-  WEIGHT_TO_SECOND_CONDITION: 0.8, //条件2 他の個体と衝突しないこと
+  MAX_SPEED: 5,
+  WEIGHT_TO_FIRST_CONDITION: 0.8, //条件1
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
   PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.1 //条件3 全体の流れに沿って動くこと
+  WEIGHT_TO_THIRD_CONDITION: 0.001 //条件3
 }
 let params2 = {
   MAX_SPEED: 2,
-  WEIGHT_TO_FIRST_CONDITION: 0.005, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
   PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.1 //条件3 全体の流れに沿って動くこと
+  WEIGHT_TO_THIRD_CONDITION: 0.005 //条件3
 }
 
 let params3 = {
   MAX_SPEED: 4,
-  WEIGHT_TO_FIRST_CONDITION: 0.001, //条件1 他の個体と離れないこと(全個体の平均の座標に向かう)
-  WEIGHT_TO_SECOND_CONDITION: 0.9, //条件2 他の個体と衝突しないこと
+  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1 
+  WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2
   PERSPNAL_SPACE: 5,//これより近いと避ける
-  WEIGHT_TO_THIRD_CONDITION: 0.05 //条件3 全体の流れに沿って動くこと
+  WEIGHT_TO_THIRD_CONDITION: 0.001 //条件3
 }
 
 class Biont {
@@ -95,9 +95,10 @@ class Biont {
     this.v2 = { x: 0, y: 0, z: 0 };
     this.v3 = { x: 0, y: 0, z: 0 };
 
-    this.getToCenterVector();
-    this.getAvoidanceVector();
-    this.getAverageVelocityVector();
+    
+    this.getAvoidanceVector(); // 衝突回避
+    this.getAverageVelocityVector(); // 整列
+    this.getToCenterVector(); // 向心運動
     this.isInTheArea();
     this.update();
     this.setFaceDirection();
@@ -106,25 +107,7 @@ class Biont {
     this.object.position.y = this.y
     this.object.position.z = this.z
   }
-  /**
-   * 集団の中心に向かって移動します
-   */
-  getToCenterVector() {
-    // 他の個体の座標の平均をgetToCenterVectorに代入します
-    const center = { x: 0, y: 0, z: 0 };
-    boids.filter(biont => this.id !== biont.id && this.name === biont.name).forEach(biont => {
-      center.x += biont.x;
-      center.y += biont.y;
-      center.z += biont.z;
-    });
-    center.x /= boids.length / NUMBER_OF_BOIDS - 1;
-    center.y /= boids.length / NUMBER_OF_BOIDS - 1;
-    center.z /= boids.length / NUMBER_OF_BOIDS - 1;
-
-    this.v1.x = center.x - this.x;
-    this.v1.y = center.y - this.y;
-    this.v1.z = center.z - this.z;
-  }
+  
   /**
    * DIST_THRESHOLD内に仲間がいると避けます
    */
@@ -132,9 +115,9 @@ class Biont {
     boids.filter(
       biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < this.PERSPNAL_SPACE && this.name === biont.name
     ).forEach(biont => {
-      this.v2.x -= biont.x - this.x;
-      this.v2.y -= biont.y - this.y;
-      this.v2.z -= biont.z - this.z;
+      this.v1.x -= biont.x - this.x;
+      this.v1.y -= biont.y - this.y;
+      this.v1.z -= biont.z - this.z;
     });
   }
   /**
@@ -151,9 +134,28 @@ class Biont {
     avgV.x /= boids.length - 1;
     avgV.y /= boids.length - 1;
     avgV.z /= boids.length - 1;
-    this.v3.x = avgV.x - this.vx;
-    this.v3.y = avgV.y - this.vy;
-    this.v3.z = avgV.z - this.vz;
+    this.v2.x = avgV.x - this.vx;
+    this.v2.y = avgV.y - this.vy;
+    this.v2.z = avgV.z - this.vz;
+  }
+  /**
+   * 集団の中心に向かって移動します
+   */
+  getToCenterVector() {
+    // 他の個体の座標の平均をgetToCenterVectorに代入します
+    const center = { x: 0, y: 0, z: 0 };
+    boids.filter(biont => this.id !== biont.id && this.name === biont.name).forEach(biont => {
+      center.x += biont.x;
+      center.y += biont.y;
+      center.z += biont.z;
+    });
+    center.x /= (boids.length / NUMBER_OF_BOIDS - 1);
+    center.y /= (boids.length / NUMBER_OF_BOIDS - 1);
+    center.z /= (boids.length / NUMBER_OF_BOIDS - 1);
+
+    this.v3.x = center.x - this.x;
+    this.v3.y = center.y - this.y;
+    this.v3.z = center.z - this.z;
   }
   /**
    * 行動できる範囲
@@ -187,12 +189,13 @@ function animate() {
     biont.draw();
   });
 
-  rot += 0.05; // 毎フレーム角度を0.5度ずつ足していく
-  // ラジアンに変換する
-  const radian = (rot * Math.PI) / 180;
-  // 角度に応じてカメラの位置を設定
-  camera.position.x = 150 * Math.sin(radian);
-  camera.position.z = 150 * Math.cos(radian);
+  // rot += 0.05; // 毎フレーム角度を0.5度ずつ足していく
+  // // ラジアンに変換する
+  // const radian = (rot * Math.PI) / 180;
+  // // 角度に応じてカメラの位置を設定
+  // camera.position.x = 150 * Math.sin(radian);
+  // camera.position.z = 150 * Math.cos(radian);
+
   //カメラの向きを指定
   camera.lookAt(aquarium.position);
 
