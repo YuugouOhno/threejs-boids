@@ -1,6 +1,7 @@
 import "./style.css"
 import * as THREE from "three";
-import { TorusGeometry } from "three";
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+// import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
@@ -29,7 +30,7 @@ let params1 = {
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3　集合
   WEIGHT_TO_GYRATION: 1, //回転
-  WEIGHT_TO_CENTER:1,
+  WEIGHT_TO_CENTER: 1,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#ff0000",
     metalness: 0.865,
@@ -47,7 +48,7 @@ let params2 = {
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.005, //条件3　集合
   WEIGHT_TO_GYRATION: 1, //回転
-  WEIGHT_TO_CENTER:0.001,
+  WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#0000ff",
     metalness: 0.865,
@@ -65,7 +66,7 @@ let params3 = {
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3 集合
   WEIGHT_TO_GYRATION: 1, //回転
-  WEIGHT_TO_CENTER:0.001,
+  WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#4b0082",
     metalness: 0.865,
@@ -85,7 +86,7 @@ class Biont {
     this.weight_to_third_condition = params.WEIGHT_TO_THIRD_CONDITION; //条件3 集合
     this.weight_to_gyration = params.WEIGHT_TO_GYRATION;
     this.weight_to_center = params.WEIGHT_TO_CENTER;
-  
+
     this.type = params.TYPE;
 
     this.rot = 0;//回転の調整
@@ -102,6 +103,15 @@ class Biont {
     this.v2 = { x: 0, y: 0, z: 0 }; // 条件2を表す速度ベクトル
     this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
     this.v_to_center = { x: 0, y: 0, z: 0 };
+
+      // const objLoader = new OBJLoader();
+      // objLoader.load(
+      //   './models/fish.obj',
+      //   (fish) => {
+      //     fish.scale.set(20, 20, 20);
+      //     scene.add(fish);
+      //   }
+      // );
 
     //メッシュ
     this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
@@ -208,14 +218,14 @@ class Biont {
    */
   setTheArea() {
     if (dist(0, 0, 0, this.x, this.y, this.z) > AREA_OF_MOVE) {
-      this.v_to_center.x += -(this.x*(dist(0, 0, 0, this.x, this.y, this.z)-AREA_OF_MOVE));
-      this.v_to_center.y += -(this.y*(dist(0, 0, 0, this.x, this.y, this.z)-AREA_OF_MOVE));
-      this.v_to_center.z += -(this.z*(dist(0, 0, 0, this.x, this.y, this.z)-AREA_OF_MOVE));
+      this.v_to_center.x += -(this.x * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+      this.v_to_center.y += -(this.y * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+      this.v_to_center.z += -(this.z * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
     }
   }
 
   getGyration() {
-    this.rot += 1*this.speed; // 毎フレーム角度を0.5度ずつ足していく
+    this.rot += 1 * this.speed; // 毎フレーム角度を0.5度ずつ足していく
     // ラジアンに変換する
     const radian = (this.rot * Math.PI) / 180;
     // this.v_gyration.x += Math.sin(radian);
@@ -291,7 +301,7 @@ function init() {
   });
 
   //ジオメトリ
-  sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE*1.2, 32, 16);
+  sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE * 1.2, 32, 16);
 
   // //メッシュ
   aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
