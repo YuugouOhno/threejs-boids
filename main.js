@@ -25,7 +25,7 @@ let params1 = {
   TYPE: "red",
   SPEED: 2,
   MAX_SPEED: 5,
-  WEIGHT_TO_FIRST_CONDITION: 0.8, //条件1　回避
+  WEIGHT_TO_SEPARATION: 0.8, //条件1　回避
   WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3　集合
@@ -43,7 +43,7 @@ let params2 = {
   TYPE: "blue",
   SPEED: 2,
   MAX_SPEED: 3,
-  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1　回避
+  WEIGHT_TO_SEPARATION: 0.9, //条件1　回避
   WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.005, //条件3　集合
@@ -61,7 +61,7 @@ let params3 = {
   TYPE: "purple",
   SPEED: 1,
   MAX_SPEED: 4,
-  WEIGHT_TO_FIRST_CONDITION: 0.9, //条件1 回避
+  WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
   WEIGHT_TO_SECOND_CONDITION: 0.1, //条件2 整列
   PERSONAL_SPACE: 5,
   WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3 集合
@@ -78,108 +78,120 @@ let params3 = {
 
 class Biont {
   constructor(x, y, z, vx, vy, vz, id, params) {
+    //メッシュ
+    this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
+
+    //初期位置
+    // this.object.position.x = this.x
+    // this.object.position.y = this.y
+    // this.object.position.z = this.z
+    scene.add(this.object);
+
     this.speed = params.SPEED;
     this.max_speed = params.MAX_SPEED;
-    this.weight_to_first_condition = params.WEIGHT_TO_FIRST_CONDITION; //条件1 回避
+    this.weight_to_separation = params.WEIGHT_TO_SEPARATION; //条件1 回避
     this.weight_to_second_condition = params.WEIGHT_TO_SECOND_CONDITION; //条件2 整列
     this.personal_space = params.PERSONAL_SPACE; //これより近いと避ける
     this.weight_to_third_condition = params.WEIGHT_TO_THIRD_CONDITION; //条件3 集合
     this.weight_to_gyration = params.WEIGHT_TO_GYRATION;
     this.weight_to_center = params.WEIGHT_TO_CENTER;
-
     this.type = params.TYPE;
-
     this.rot = 0;//回転の調整
-
-    this.x = x; // 個体のx座標
-    this.y = y; // 個体のy座標
-    this.z = z; // 個体のz座標
-    this.vx = vx; // 個体のx方向の速度
-    this.vy = vy; // 個体のy方向の速度
-    this.vz = vz; // 個体のz方向の速度
     this.id = id; // 個体識別番号
 
-    this.v1 = { x: 0, y: 0, z: 0 }; // 条件1を表す速度ベクトル
-    this.v2 = { x: 0, y: 0, z: 0 }; // 条件2を表す速度ベクトル
-    this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
-    this.v_to_center = { x: 0, y: 0, z: 0 };
+    // this.x = x; // 個体のx座標
+    // this.y = y; // 個体のy座標
+    // this.z = z; // 個体のz座標
+    this.xyz = new THREE.Vector3(x,y,z);
 
-      // const objLoader = new OBJLoader();
-      // objLoader.load(
-      //   './models/fish.obj',
-      //   (fish) => {
-      //     fish.scale.set(20, 20, 20);
-      //     scene.add(fish);
-      //   }
-      // );
+    // this.vx = vx; // 個体のx方向の速度
+    // this.vy = vy; // 個体のy方向の速度
+    // this.vz = vz; // 個体のz方向の速度
+    this.v = new THREE.Vector3();
+    
+    // this.v1 = { x: 0, y: 0, z: 0 }; // 条件1を表す速度ベクトル
+    this.v_separation = new THREE.Vector3();
+    // this.v2 = { x: 0, y: 0, z: 0 }; // 条件2を表す速度ベクトル
+    this.v_alignment = new THREE.Vector3();
+    // this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
+    this.v_cohesion = new THREE.Vector3();
+    // this.v_to_center = { x: 0, y: 0, z: 0 };
+    this.v_to_center = new THREE.Vector3();
+    // const objLoader = new OBJLoader();
+    // objLoader.load(
+    //   './models/fish.obj',
+    //   (fish) => {
+    //     fish.scale.set(20, 20, 20);
+    //     scene.add(fish);
+    //   }
+    // );
 
-    //メッシュ
-    this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
-
-    //初期位置
-    this.object.position.x = this.x
-    this.object.position.y = this.y
-    this.object.position.z = this.z
-    scene.add(this.object);
+    this.object.position.copy(this.xyz);
 
     if (!type_of_bois.includes(this.type)) {
       type_of_bois.push(this.type);
     };
   }
   update() {
-    this.vx += this.weight_to_first_condition * this.v1.x + this.weight_to_second_condition * this.v2.x + this.weight_to_third_condition * this.v3.x + this.weight_to_center * this.v_to_center.x;
-    this.vy += this.weight_to_first_condition * this.v1.y + this.weight_to_second_condition * this.v2.y + this.weight_to_third_condition * this.v3.y + this.weight_to_center * this.v_to_center.y;
-    this.vz += this.weight_to_first_condition * this.v1.z + this.weight_to_second_condition * this.v2.z + this.weight_to_third_condition * this.v3.z + this.weight_to_center * this.v_to_center.z;
+    // this.vx += this.weight_to_first_condition * this.v1.x + this.weight_to_second_condition * this.v2.x + this.weight_to_third_condition * this.v3.x + this.weight_to_center * this.v_to_center.x;
+    // this.vy += this.weight_to_first_condition * this.v1.y + this.weight_to_second_condition * this.v2.y + this.weight_to_third_condition * this.v3.y + this.weight_to_center * this.v_to_center.y;
+    // this.vz += this.weight_to_first_condition * this.v1.z + this.weight_to_second_condition * this.v2.z + this.weight_to_third_condition * this.v3.z + this.weight_to_center * this.v_to_center.z;
 
+    this.v.add(this.v_separation)
+    this.v.add(this.v_alignment)
     // 最高速度を設定
-    const movement = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
-    if (movement > this.max_speed) {
-      this.vx = (this.vx / movement) * this.max_speed;
-      this.vy = (this.vy / movement) * this.max_speed;
-      this.vz = (this.vz / movement) * this.max_speed;
-    }
-    this.x += this.vx;
-    this.y += this.vy;
-    this.z += this.vz;
+    // const movement = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
+    // if (movement > this.max_speed) {
+    //   this.vx = (this.vx / movement) * this.max_speed;
+    //   this.vy = (this.vy / movement) * this.max_speed;
+    //   this.vz = (this.vz / movement) * this.max_speed;
+    // }
+
+    // this.x += this.vx;
+    // this.y += this.vy;
+    // this.z += this.vz;
+    this.xyz.add(this.v);
+
   }
   draw() {
-    this.v1 = { x: 0, y: 0, z: 0 };
-    this.v2 = { x: 0, y: 0, z: 0 };
-    this.v3 = { x: 0, y: 0, z: 0 };
-    this.v_to_center = { x: 0, y: 0, z: 0 };
+    // this.v1 = { x: 0, y: 0, z: 0 };
+    // this.v2 = { x: 0, y: 0, z: 0 };
+    // this.v3 = { x: 0, y: 0, z: 0 };
+    // this.v_to_center = { x: 0, y: 0, z: 0 };
 
-    this.getAvoidanceVector(); // 衝突回避
-    this.getAverageVelocityVector(); // 整列
-    this.getToOthrePosition(); // 向心運動
+    this.getSeparation(); // 分散 衝突回避
+    // this.getAlignment(); // 整列
+    // this.getCohesion(); // 向心運動
 
-    this.setTheArea(); //水槽の中心に向かう
+    // this.setTheArea(); //水槽の中心に向かう
 
     this.update();
-    this.getGyration(); // 回転運動
-    this.setFaceDirection(); //進行方向を向く
+    // this.getGyration(); // 回転運動
+    // this.setFaceDirection(); //進行方向を向く
 
-
-    this.object.position.x = this.x;
-    this.object.position.y = this.y;
-    this.object.position.z = this.z;
+    // this.object.position.x = this.x;
+    // this.object.position.y = this.y;
+    // this.object.position.z = this.z;
+    this.object.position.copy(this.xyz);
   }
 
   /**
-   * DIST_THRESHOLD内に仲間がいると避けます
+   * 分離（Separation）
    */
-  getAvoidanceVector() {
+  getSeparation() {
     boids.filter(
-      biont => dist(this.x, this.y, this.z, biont.x, biont.y, biont.z) < this.personal_space && this.type === biont.type
+      biont => biont.xyz.distanceTo(this.xyz) < this.personal_space && this.type === biont.type
     ).forEach(biont => {
-      this.v1.x -= biont.x - this.x;
-      this.v1.y -= biont.y - this.y;
-      this.v1.z -= biont.z - this.z;
+      // this.v1.x -= (biont.x - this.x);
+      // this.v1.y -= (biont.y - this.y);
+      // this.v1.z -= (biont.z - this.z);
+      this.v_separation.sub(biont.xyz.clone().sub(this.xyz)).multiplyScalar(this.weight_to_separation);
     });
   }
   /**
-   * 集団のベクトルの平均
+   * 整列（Alignment）
    */
-  getAverageVelocityVector() {
+  getAlignment() {
     // avgVに各個体の速度の平均を代入します
     const avgV = { x: 0, y: 0, z: 0 };
     boids.filter(biont => this.id !== biont.id && this.type === biont.type).forEach(biont => {
@@ -193,11 +205,12 @@ class Biont {
     this.v2.x = avgV.x - this.vx;
     this.v2.y = avgV.y - this.vy;
     this.v2.z = avgV.z - this.vz;
+    
   }
   /**
-   * 集団の中心に向かって移動します
+   * 結合（Cohesion）
    */
-  getToOthrePosition() {
+  getCohesion() {
     // 他の個体の座標の平均をgetToCenterVectorに代入します
     const center = { x: 0, y: 0, z: 0 };
     boids.filter(biont => this.id !== biont.id && this.type === biont.type).forEach(biont => {
