@@ -20,15 +20,15 @@ const SIZE_OF_AQUARIUM = 100; //これより外に行かない
 
 let params1 = {
   TYPE: "red",
-  SPEED: 1,
+  SPEED: 0.9,
   MAX_SPEED: 5,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
   ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
-  WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
+  WEIGHT_TO_SEPARATION: 1, //条件1 分離
   WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
-  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
-  PERSONAL_SPACE: 5,
-  WEIGHT_TO_GYRATION: 1, //回転
+  WEIGHT_TO_COHESION: 0.001, //条件3 凝集
+  SEPARATION_RANGE: 20, // 分離する範囲
+  COHESION_RANGE: 40, // 凝集する範囲
   WEIGHT_TO_CENTER: 1,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#ff0000",
@@ -40,15 +40,15 @@ let params1 = {
 }
 let params2 = {
   TYPE: "blue",
-  SPEED: 1,
+  SPEED: 0.9,
   MAX_SPEED: 3,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
   ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
-  WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
+  WEIGHT_TO_SEPARATION: 0.9, //条件1 分離
   WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
-  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
-  PERSONAL_SPACE: 5,
-  WEIGHT_TO_GYRATION: 1, //回転
+  WEIGHT_TO_COHESION: 0.0001, //条件3 凝集
+  SEPARATION_RANGE: 10, // 分離する範囲
+  COHESION_RANGE: 40, // 凝集する範囲
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#0000ff",
@@ -60,15 +60,15 @@ let params2 = {
 }
 let params3 = {
   TYPE: "purple",
-  SPEED: 1,
-  MAX_SPEED: 4,
+  SPEED: 0.9,
+  MAX_SPEED: 2,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
   ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
-  WEIGHT_TO_SEPARATION: 0.9, //条件1 分離
+  WEIGHT_TO_SEPARATION: 2, //条件1 分離
   WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
-  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
-  PERSONAL_SPACE: 5,
-  WEIGHT_TO_GYRATION: 1, //回転
+  WEIGHT_TO_COHESION: 0.001, //条件3 凝集
+  SEPARATION_RANGE: 10, // 分離する範囲
+  COHESION_RANGE: 15, // 凝集する範囲
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
     color: "#4b0082",
@@ -89,15 +89,14 @@ class Biont {
     this.max_speed = params.MAX_SPEED;
     this.weight_to_separation = params.WEIGHT_TO_SEPARATION; //条件1 分離
     this.weight_to_alignment = params.WEIGHT_TO_ALIGNMENT; //条件2 整列
-    this.weight_to_cohesion = params.WEIGHT_TO_COHESION; //条件3 集合
-    this.personal_space = params.PERSONAL_SPACE; //これより近いと避ける
-    this.weight_to_gyration = params.WEIGHT_TO_GYRATION;
+    this.weight_to_cohesion = params.WEIGHT_TO_COHESION; //条件3 凝集
+    this.separation_range = params.SEPARATION_RANGE; // 分離する範囲
+    this.cohesion_range = params.COHESION_RANGE; // 凝集する範囲    
     this.weight_to_center = params.WEIGHT_TO_CENTER;
 
     this.center_of_boids = params.CENTER_OF_BOIDS; //群れの中心地点
     this.action_range_of_boids = params.ACTION_RANGE_OF_BOIDS //群れの行動範囲(半径)
     this.type = params.TYPE;
-    this.rot = 0;//回転の調整
     this.id = id; // 個体識別番号
 
     this.xyz = new THREE.Vector3(x,y,z); //位置ベクトルの設定
@@ -105,7 +104,7 @@ class Biont {
   
     this.v_separation = new THREE.Vector3(); //分離のベクトル
     this.v_alignment = new THREE.Vector3(); //整列のベクトル
-    this.v_cohesion = new THREE.Vector3(); //集合のベクトル
+    this.v_cohesion = new THREE.Vector3(); //凝集のベクトル
     this.v_to_center = new THREE.Vector3(); //
 
     // 初期位置の反映
@@ -143,7 +142,8 @@ class Biont {
     this.getSeparation(); // 分離
     this.getAlignment(); // 整列
     this.getCohesion(); // 集合
-    this.setActionRange(); //行動範囲外に出た際の処理
+    this.setActionRange(); // 行動範囲外に出た際の処理
+    this.getRepellentForce(); // 自分の周りを追い出す
     this.update(); // 位置ベクトルに反映する
     this.setFaceDirection(); //進行方向を向く
     this.object.position.copy(this.xyz); // 描画
@@ -156,15 +156,18 @@ class Biont {
     const separation_vector = new THREE.Vector3();
     let separation_count = 0;
     boids.filter(biont => 
-      biont.xyz.distanceTo(this.xyz) < this.personal_space && 
+      biont.xyz.distanceTo(this.xyz) < this.separation_range &&
       this.type === biont.type
     ).forEach(biont => {
       const closeness = 1/(Math.floor(biont.xyz.distanceTo(this.xyz))+1);
       separation_vector.add(this.xyz.clone().sub(biont.xyz).multiplyScalar(closeness));
       separation_count += 1;
     });
-    separation_vector.divideScalar(separation_count);
+    if (separation_count) {
+      separation_vector.divideScalar(separation_count);
+    }
     this.v_separation.copy(separation_vector).multiplyScalar(this.weight_to_separation);
+
   }
   /**
    * 整列（Alignment）
@@ -182,20 +185,23 @@ class Biont {
     this.v_alignment.copy(alignment_vector).multiplyScalar(this.weight_to_alignment);
   }
   /**
-   * 結合（Cohesion）
+   * 凝集（Cohesion）
    */
   getCohesion() {
     const cohesion_vector = new THREE.Vector3();
     let cohesion_count = 0;
-    boids.filter(biont => 
+    boids.filter(biont =>
       this.id !== biont.id && 
-      this.type === biont.type
+      this.type === biont.type &&
+      biont.xyz.distanceTo(this.xyz) < this.cohesion_range
     ).forEach(biont => {
       const closeness = biont.xyz.distanceTo(this.xyz);
       cohesion_vector.add(biont.xyz.clone().sub(this.xyz).multiplyScalar(closeness));
       cohesion_count += 1;
     });
-    cohesion_vector.divideScalar(cohesion_count);
+    if (cohesion_count) {
+      cohesion_vector.divideScalar(cohesion_count);
+    }
     this.v_cohesion.copy(cohesion_vector).multiplyScalar(this.weight_to_cohesion);
   }
   /**
@@ -207,7 +213,9 @@ class Biont {
       this.v.sub(this.xyz.clone().multiplyScalar(x*this.weight_to_center));
     }
   }
+  getRepellentForce() {
 
+  }
   setFaceDirection() {
     this.object.lookAt(this.xyz);
   }
@@ -281,11 +289,11 @@ function init() {
   scene.add(directionalLight);
 
   //biontを作成
-  for (let i = 0; i < NUMBER; i++) {
-    boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params1)
-    );
-  }
+  // for (let i = 0; i < NUMBER; i++) {
+  //   boids.push(
+  //     new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params1)
+  //   );
+  // }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
