@@ -26,10 +26,10 @@ let params1 = {
   MAX_SPEED: 5,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
   ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
-  WEIGHT_TO_SEPARATION: 0.8, //条件1　回避
-  WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
+  WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
+  WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_COHESION: 0.001, //条件3　集合
+  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 1,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -46,10 +46,10 @@ let params2 = {
   MAX_SPEED: 3,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
   ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
-  WEIGHT_TO_SEPARATION: 0.9, //条件1　回避
-  WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
+  WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
+  WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_COHESION: 0.005, //条件3　集合
+  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -65,11 +65,11 @@ let params3 = {
   SPEED: 1,
   MAX_SPEED: 4,
   CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
-  ACTION_RANGE_OF_BOIDS: 50, //群れの行動範囲
+  ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
   WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
-  WEIGHT_TO_ALIGNMENT: 0.1, //条件2 整列
+  WEIGHT_TO_ALIGNMENT: 0.001, //条件2 整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_COHESION: 0.001, //条件3 集合
+  WEIGHT_TO_COHESION: 0.0001, //条件3 集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -178,12 +178,12 @@ class Biont {
     this.getSeparation(); // 分散 衝突回避
     this.getAlignment(); // 整列
     this.getCohesion(); // 結合 向心運動
-    // this.setActionRange(); //行動範囲
+    this.setActionRange(); //行動範囲
     
 
-    this.getGyration(); // 回転運動
-    this.setFaceDirection(); //進行方向を向く
+    // this.getGyration(); // 回転運動
     this.update();
+    this.setFaceDirection(); //進行方向を向く
 
     // this.object.position.x = this.x;
     // this.object.position.y = this.y;
@@ -276,7 +276,7 @@ class Biont {
       // this.v_to_center.sub(this.xyz.clone().sub);
       // back_to_action_range.sub(this.xyz.clone().normalize())
       const x = this.center_of_boids.distanceTo(this.xyz) - this.action_range_of_boids;
-      this.v_to_center.copy(this.xyz.clone().multiplyScalar(x))
+      this.v.sub(this.xyz.clone().multiplyScalar(x*this.weight_to_center))
       // this.v.copy(this.xyz.clone().multiplyScalar(-0.3))
     }
   }
