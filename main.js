@@ -109,13 +109,14 @@ class Biont {
     this.v = new THREE.Vector3();
     
     // this.v1 = { x: 0, y: 0, z: 0 }; // 条件1を表す速度ベクトル
-    this.v_separation = new THREE.Vector3();
     // this.v2 = { x: 0, y: 0, z: 0 }; // 条件2を表す速度ベクトル
-    this.v_alignment = new THREE.Vector3();
     // this.v3 = { x: 0, y: 0, z: 0 }; // 条件3を表す速度ベクトル
-    this.v_cohesion = new THREE.Vector3();
     // this.v_to_center = { x: 0, y: 0, z: 0 };
+    this.v_separation = new THREE.Vector3();
+    this.v_alignment = new THREE.Vector3();
+    this.v_cohesion = new THREE.Vector3();
     this.v_to_center = new THREE.Vector3();
+
     // const objLoader = new OBJLoader();
     // objLoader.load(
     //   './models/fish.obj',
@@ -186,6 +187,7 @@ class Biont {
    */
   getSeparation() {
     const separation_vector = new THREE.Vector3();
+    let separation_count = 0;
     boids.filter(biont => 
       biont.xyz.distanceTo(this.xyz) < this.personal_space && 
       this.type === biont.type
@@ -195,7 +197,9 @@ class Biont {
       // this.v1.z -= (biont.z - this.z);
       const closeness = 1/(Math.floor(biont.xyz.distanceTo(this.xyz))+1);
       separation_vector.add(this.xyz.clone().sub(biont.xyz).multiplyScalar(closeness));
+      separation_count += 1;
     });
+    separation_vector.divideScalar(separation_count);
     this.v_separation.copy(separation_vector).multiplyScalar(this.weight_to_separation);
   }
   /**
@@ -233,9 +237,10 @@ class Biont {
       this.id !== biont.id && 
       this.type === biont.type
     ).forEach(biont => {
-      center.x += biont.x;
-      center.y += biont.y;
-      center.z += biont.z;
+      // center.x += biont.x;
+      // center.y += biont.y;
+      // center.z += biont.z;
+
     });
     center.x /= (boids.length / type_of_bois.length - 1);
     center.y /= (boids.length / type_of_bois.length - 1);
