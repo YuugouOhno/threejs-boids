@@ -7,7 +7,6 @@ import * as THREE from "three";
 const canvas = document.querySelector(".webgl");
 
 let scene, camera, renderer, sphereGeometry, aquarium;
-
 //サイズ
 let sizes = {
   width: window.innerWidth,
@@ -168,7 +167,7 @@ class Biont {
 
     this.getSeparation(); // 分散 衝突回避
     this.getAlignment(); // 整列
-    this.getCohesion(); // 結合 向心運動
+    // this.getCohesion(); // 結合 向心運動
 
     // this.setTheArea(); //水槽の中心に向かう
 
@@ -186,6 +185,7 @@ class Biont {
    * 分離（Separation）
    */
   getSeparation() {
+    const separation_vector = new THREE.Vector3();
     boids.filter(biont => 
       biont.xyz.distanceTo(this.xyz) < this.personal_space && 
       this.type === biont.type
@@ -193,8 +193,10 @@ class Biont {
       // this.v1.x -= (biont.x - this.x);
       // this.v1.y -= (biont.y - this.y);
       // this.v1.z -= (biont.z - this.z);
-      this.v_separation.sub(biont.xyz.clone().sub(this.xyz)).multiplyScalar(this.weight_to_separation);
+      const closeness = 1/(Math.floor(biont.xyz.distanceTo(this.xyz))+1);
+      separation_vector.add(this.xyz.clone().sub(biont.xyz).multiplyScalar(closeness));
     });
+    this.v_separation.copy(separation_vector).multiplyScalar(this.weight_to_separation);
   }
   /**
    * 整列（Alignment）
@@ -218,7 +220,8 @@ class Biont {
     // this.v2.x = avgV.x - this.vx;
     // this.v2.y = avgV.y - this.vy;
     // this.v2.z = avgV.z - this.vz;
-    this.v_alignment.add(alignment_vector.sub(this.v)).multiplyScalar(this.weight_to_alignment);
+    alignment_vector.sub(this.v)
+    this.v_alignment.copy(alignment_vector).multiplyScalar(this.weight_to_alignment);
   }
   /**
    * 結合（Cohesion）
@@ -269,9 +272,13 @@ class Biont {
   }
 }
 
-//(x0, y0, z0)と(x1, y1, z1)の距離を返す
-function dist(x0, y0, z0, x1, y1, z1) {
-  return Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0));
+// //(x0, y0, z0)と(x1, y1, z1)の距離を返す
+// function dist(x0, y0, z0, x1, y1, z1) {
+//   return Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0));
+// }
+
+function distance(vector_a, vector_b) {
+  return vector_a.distanceTo(vector_b)
 }
 
 //アニメーション
