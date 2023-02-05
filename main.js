@@ -18,12 +18,14 @@ window.addEventListener("load", init);
 const boids = [];
 const type_of_bois = [];
 const NUMBER = 100 //魚の数
-const AREA_OF_MOVE = 100; //これより外に行かない
+const SIZE_OF_AQUARIUM = 100; //これより外に行かない
 
 let params1 = {
   TYPE: "red",
   SPEED: 2,
   MAX_SPEED: 5,
+  CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
+  ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
   WEIGHT_TO_SEPARATION: 0.8, //条件1　回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
@@ -42,6 +44,8 @@ let params2 = {
   TYPE: "blue",
   SPEED: 2,
   MAX_SPEED: 3,
+  CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
+  ACTION_RANGE_OF_BOIDS: 100, //群れの行動範囲
   WEIGHT_TO_SEPARATION: 0.9, //条件1　回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
@@ -60,6 +64,8 @@ let params3 = {
   TYPE: "purple",
   SPEED: 1,
   MAX_SPEED: 4,
+  CENTER_OF_BOIDS: new THREE.Vector3(0,0,0), //群れの中心
+  ACTION_RANGE_OF_BOIDS: 50, //群れの行動範囲
   WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2 整列
   PERSONAL_SPACE: 5,
@@ -94,6 +100,9 @@ class Biont {
     this.weight_to_cohesion = params.WEIGHT_TO_COHESION; //条件3 集合
     this.weight_to_gyration = params.WEIGHT_TO_GYRATION;
     this.weight_to_center = params.WEIGHT_TO_CENTER;
+
+    this.center_of_boids = params.CENTER_OF_BOIDS; //群れの中心地点
+    this.action_range_of_boids = params.ACTION_RANGE_OF_BOIDS //群れの行動範囲(半径)
     this.type = params.TYPE;
     this.rot = 0;//回転の調整
     this.id = id; // 個体識別番号
@@ -136,12 +145,10 @@ class Biont {
     // this.vx += this.weight_to_first_condition * this.v1.x + this.weight_to_second_condition * this.v2.x + this.weight_to_third_condition * this.v3.x + this.weight_to_center * this.v_to_center.x;
     // this.vy += this.weight_to_first_condition * this.v1.y + this.weight_to_second_condition * this.v2.y + this.weight_to_third_condition * this.v3.y + this.weight_to_center * this.v_to_center.y;
     // this.vz += this.weight_to_first_condition * this.v1.z + this.weight_to_second_condition * this.v2.z + this.weight_to_third_condition * this.v3.z + this.weight_to_center * this.v_to_center.z;
-    
     this.v.add(this.v_separation);
     this.v.add(this.v_alignment);
     this.v.add(this.v_cohesion);
     this.v.add(this.v_to_center);
-
     // 最高速度を設定
     // const movement = Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
     // if (movement > this.max_speed) {
@@ -149,12 +156,14 @@ class Biont {
     //   this.vy = (this.vy / movement) * this.max_speed;
     //   this.vz = (this.vz / movement) * this.max_speed;
     // }
+    if (this.v.length() > this.max_speed) {
+      this.v.multiplyScalar(this.max_speed / this.v.length());
+    }
 
     // this.x += this.vx;
     // this.y += this.vy;
     // this.z += this.vz;
     this.xyz.add(this.v);
-
   }
   draw() {
     // this.v1 = { x: 0, y: 0, z: 0 };
@@ -169,12 +178,12 @@ class Biont {
     this.getSeparation(); // 分散 衝突回避
     this.getAlignment(); // 整列
     this.getCohesion(); // 結合 向心運動
+    // this.setActionRange(); //行動範囲
+    
 
-    // this.setTheArea(); //水槽の中心に向かう
-
+    this.getGyration(); // 回転運動
+    this.setFaceDirection(); //進行方向を向く
     this.update();
-    // this.getGyration(); // 回転運動
-    // this.setFaceDirection(); //進行方向を向く
 
     // this.object.position.x = this.x;
     // this.object.position.y = this.y;
@@ -257,11 +266,18 @@ class Biont {
   /**
    * 行動できる範囲
    */
-  setTheArea() {
-    if (dist(0, 0, 0, this.x, this.y, this.z) > AREA_OF_MOVE) {
-      this.v_to_center.x += -(this.x * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
-      this.v_to_center.y += -(this.y * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
-      this.v_to_center.z += -(this.z * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+  setActionRange() {
+    if (this.center_of_boids.distanceTo(this.xyz) > this.action_range_of_boids) {
+      // const back_to_action_range = new THREE.Vector3();
+      // this.v_to_center.x += -(this.x * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+      // this.v_to_center.y += -(this.y * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+      // this.v_to_center.z += -(this.z * (dist(0, 0, 0, this.x, this.y, this.z) - AREA_OF_MOVE));
+      // const distnace_from_center = this.center_of_boids.distanceTo(this.xyz) / this.action_range_of_boids
+      // this.v_to_center.sub(this.xyz.clone().sub);
+      // back_to_action_range.sub(this.xyz.clone().normalize())
+      const x = this.center_of_boids.distanceTo(this.xyz) - this.action_range_of_boids;
+      this.v_to_center.copy(this.xyz.clone().multiplyScalar(x))
+      // this.v.copy(this.xyz.clone().multiplyScalar(-0.3))
     }
   }
 
@@ -272,12 +288,12 @@ class Biont {
     // this.v_gyration.x += Math.sin(radian);
     // this.v_gyration.z += Math.cos(radian);
 
-    this.x += Math.sin(radian) * this.weight_to_gyration;
-    this.z += Math.cos(radian) * this.weight_to_gyration;
+    this.xyz.x += Math.sin(radian) * this.weight_to_gyration;
+    this.xyz.z += Math.cos(radian) * this.weight_to_gyration;
 
   }
   setFaceDirection() {
-    this.object.lookAt(new THREE.Vector3(this.x, this.y, this.z));
+    this.object.lookAt(this.xyz);
   }
 }
 
@@ -285,10 +301,6 @@ class Biont {
 // function dist(x0, y0, z0, x1, y1, z1) {
 //   return Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0) + (z1 - z0) * (z1 - z0));
 // }
-
-function distance(vector_a, vector_b) {
-  return vector_a.distanceTo(vector_b)
-}
 
 //アニメーション
 function animate() {
@@ -326,7 +338,7 @@ function init() {
     1000
   );
 
-  camera.position.set(0, AREA_OF_MOVE * 1.4, AREA_OF_MOVE * 1.4);
+  camera.position.set(0, SIZE_OF_AQUARIUM * 1.2, SIZE_OF_AQUARIUM * 1.2);
   scene.add(camera);
 
   //レンダラー
@@ -344,7 +356,7 @@ function init() {
   });
 
   //ジオメトリ
-  sphereGeometry = new THREE.SphereGeometry(AREA_OF_MOVE * 1.2, 32, 16);
+  sphereGeometry = new THREE.SphereGeometry(SIZE_OF_AQUARIUM, 32, 16);
 
   // //メッシュ
   aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
