@@ -1,7 +1,5 @@
 import "./style.css"
 import * as THREE from "three";
-// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-// import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
@@ -110,15 +108,6 @@ class Biont {
     this.v_cohesion = new THREE.Vector3(); //集合のベクトル
     this.v_to_center = new THREE.Vector3(); //
 
-    // const objLoader = new OBJLoader();
-    // objLoader.load(
-    //   './models/fish.obj',
-    //   (fish) => {
-    //     fish.scale.set(20, 20, 20);
-    //     scene.add(fish);
-    //   }
-    // );
-
     // 初期位置の反映
     this.object.position.copy(this.xyz);
 
@@ -151,17 +140,12 @@ class Biont {
     this.v_alignment.setScalar(0);
     this.v_cohesion.setScalar(0);
     this.v_to_center.setScalar(0);
-
     this.getSeparation(); // 分離
     this.getAlignment(); // 整列
     this.getCohesion(); // 集合
     this.setActionRange(); //行動範囲外に出た際の処理
-
-    // this.getGyration(); // 回転運動を追加
-
     this.update(); // 位置ベクトルに反映する
     this.setFaceDirection(); //進行方向を向く
-
     this.object.position.copy(this.xyz); // 描画
   }
 
@@ -224,17 +208,6 @@ class Biont {
     }
   }
 
-  getGyration() {
-    this.rot += 1 * this.speed; // 毎フレーム角度を0.5度ずつ足していく
-    // ラジアンに変換する
-    const radian = (this.rot * Math.PI) / 180;
-    // this.v_gyration.x += Math.sin(radian);
-    // this.v_gyration.z += Math.cos(radian);
-
-    this.xyz.x += Math.sin(radian) * this.weight_to_gyration;
-    this.xyz.z += Math.cos(radian) * this.weight_to_gyration;
-
-  }
   setFaceDirection() {
     this.object.lookAt(this.xyz);
   }
