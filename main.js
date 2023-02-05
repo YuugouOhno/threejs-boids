@@ -16,9 +16,9 @@ let sizes = {
 window.addEventListener("load", init);
 
 const boids = [];
+const type_of_bois = [];
 const NUMBER = 100 //魚の数
 const AREA_OF_MOVE = 100; //これより外に行かない
-const type_of_bois = [];
 
 let params1 = {
   TYPE: "red",
@@ -27,7 +27,7 @@ let params1 = {
   WEIGHT_TO_SEPARATION: 0.8, //条件1　回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3　集合
+  WEIGHT_TO_COHESION: 0.001, //条件3　集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 1,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -45,7 +45,7 @@ let params2 = {
   WEIGHT_TO_SEPARATION: 0.9, //条件1　回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2　整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_THIRD_CONDITION: 0.005, //条件3　集合
+  WEIGHT_TO_COHESION: 0.005, //条件3　集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -63,7 +63,7 @@ let params3 = {
   WEIGHT_TO_SEPARATION: 0.9, //条件1 回避
   WEIGHT_TO_ALIGNMENT: 0.1, //条件2 整列
   PERSONAL_SPACE: 5,
-  WEIGHT_TO_THIRD_CONDITION: 0.001, //条件3 集合
+  WEIGHT_TO_COHESION: 0.001, //条件3 集合
   WEIGHT_TO_GYRATION: 1, //回転
   WEIGHT_TO_CENTER: 0.001,
   MATERIAL: new THREE.MeshPhysicalMaterial({
@@ -91,7 +91,7 @@ class Biont {
     this.weight_to_separation = params.WEIGHT_TO_SEPARATION; //条件1 回避
     this.weight_to_alignment = params.WEIGHT_TO_ALIGNMENT; //条件2 整列
     this.personal_space = params.PERSONAL_SPACE; //これより近いと避ける
-    this.weight_to_third_condition = params.WEIGHT_TO_THIRD_CONDITION; //条件3 集合
+    this.weight_to_cohesion = params.WEIGHT_TO_COHESION; //条件3 集合
     this.weight_to_gyration = params.WEIGHT_TO_GYRATION;
     this.weight_to_center = params.WEIGHT_TO_CENTER;
     this.type = params.TYPE;
@@ -168,7 +168,7 @@ class Biont {
 
     this.getSeparation(); // 分散 衝突回避
     this.getAlignment(); // 整列
-    // this.getCohesion(); // 結合 向心運動
+    this.getCohesion(); // 結合 向心運動
 
     // this.setTheArea(); //水槽の中心に向かう
 
@@ -233,6 +233,7 @@ class Biont {
   getCohesion() {
     // 他の個体の座標の平均をgetToCenterVectorに代入します
     const cohesion_vector = new THREE.Vector3();
+    let cohesion_count = 0;
     boids.filter(biont => 
       this.id !== biont.id && 
       this.type === biont.type
@@ -240,15 +241,18 @@ class Biont {
       // center.x += biont.x;
       // center.y += biont.y;
       // center.z += biont.z;
-
+      const closeness = biont.xyz.distanceTo(this.xyz);
+      cohesion_vector.add(biont.xyz.clone().sub(this.xyz).multiplyScalar(closeness));
+      cohesion_count += 1;
     });
-    center.x /= (boids.length / type_of_bois.length - 1);
-    center.y /= (boids.length / type_of_bois.length - 1);
-    center.z /= (boids.length / type_of_bois.length - 1);
-
-    this.v3.x = center.x - this.x;
-    this.v3.y = center.y - this.y;
-    this.v3.z = center.z - this.z;
+    // center.x /= (boids.length / type_of_bois.length - 1);
+    // center.y /= (boids.length / type_of_bois.length - 1);
+    // center.z /= (boids.length / type_of_bois.length - 1);
+    // this.v3.x = center.x - this.x;
+    // this.v3.y = center.y - this.y;
+    // this.v3.z = center.z - this.z;
+    cohesion_vector.divideScalar(cohesion_count);
+    this.v_cohesion.copy(cohesion_vector).multiplyScalar(this.weight_to_cohesion);
   }
   /**
    * 行動できる範囲
