@@ -15,7 +15,7 @@ window.addEventListener("load", init);
 
 const boids = [];
 const type_of_bois = [];
-const NUMBER = 50 //魚の数
+const NUMBER = 300 //魚の数
 const SIZE_OF_AQUARIUM = 100; //これより外に行かない
 
 let params1 = {
@@ -81,8 +81,33 @@ let params3 = {
 
 class Biont {
   constructor(x, y, z, id, params) {
+
+
+    const bodyGeometry = new THREE.OctahedronGeometry(5);
+    const body = new THREE.Mesh(bodyGeometry, params.MATERIAL);
+    body.position.set(0, 0, 0);
+    body.scale.set(1, 1.1, 2)
+
+    const tailGeometry = new THREE.CircleGeometry( 10, 32, 0, (Math.PI*70) / 180 );
+    const tail1 = new THREE.Mesh(tailGeometry, params.MATERIAL);
+    tail1.position.set(0, 0, -5);
+    tail1.rotation.set(-35*(Math.PI) / 180,(Math.PI) / 2, 0);
+    tail1.height = 0.1;
+
+    const tail2 = new THREE.Mesh(tailGeometry, params.MATERIAL);
+    tail2.position.set(0, 0, -5);
+    tail2.rotation.set(-35*(Math.PI) / 180, -(Math.PI) / 2, 0);
+    tail2.height = 0.1;
+
+
+
+    this.object = new THREE.Group();
+    this.object.add(body);
+    this.object.add(tail1);
+    this.object.add(tail2);
+
     //オブジェクトの描画
-    this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
+    // this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
     scene.add(this.object);
 
     this.speed = params.SPEED; //速度
@@ -123,8 +148,8 @@ class Biont {
     // 最高速度を設定
     if (this.v.length() > this.max_speed) {
       this.v.multiplyScalar(this.max_speed / this.v.length());
-    } else if (this.v.length() < 0.1){
-      const random_move = Math.floor(Math.random()*3)-1
+    } else if (this.v.length() < 0.1) {
+      const random_move = Math.floor(Math.random() * 3) - 1
       this.v.addScalar(random_move)
     }
 
@@ -263,7 +288,8 @@ function init() {
     1000
   );
 
-  camera.position.set(0, SIZE_OF_AQUARIUM * 1.2, SIZE_OF_AQUARIUM * 1.2);
+  // camera.position.set(0, SIZE_OF_AQUARIUM * 1.2, SIZE_OF_AQUARIUM * 1.2);
+  camera.position.set(0, 0, 0);
   scene.add(camera);
 
   //レンダラー
@@ -296,17 +322,17 @@ function init() {
   scene.add(directionalLight);
 
   // biontを作成
-  for (let i = 0; i < NUMBER; i++) {
-    boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params1)
-    );
-  }
+  // for (let i = 0; i < NUMBER; i++) {
+  //   boids.push(
+  //     new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params1)
+  //   );
+  // }
 
-  for (let i = 0; i < NUMBER; i++) {
-    boids.push(
-      new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params2)
-    );
-  }
+  // for (let i = 0; i < NUMBER; i++) {
+  //   boids.push(
+  //     new Biont((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, i, params2)
+  //   );
+  // }
 
   for (let i = 0; i < NUMBER; i++) {
     boids.push(
