@@ -1,8 +1,12 @@
 import "./style.css"
 import * as THREE from "three";
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
+
 
 let scene, camera, renderer, sphereGeometry, aquarium;
 //サイズ
@@ -123,8 +127,8 @@ class Biont {
     // 最高速度を設定
     if (this.v.length() > this.max_speed) {
       this.v.multiplyScalar(this.max_speed / this.v.length());
-    } else if (this.v.length() < 0.1){
-      const random_move = Math.floor(Math.random()*3)-1
+    } else if (this.v.length() < 0.1) {
+      const random_move = Math.floor(Math.random() * 3) - 1
       this.v.addScalar(random_move)
     }
 
