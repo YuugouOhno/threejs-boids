@@ -4,12 +4,15 @@ import * as THREE from "three";
 // キャンバスの指定
 const canvas = document.querySelector(".webgl");
 
-let scene, camera, renderer, sphereGeometry, aquarium;
+let scene, camera, renderer, sphereGeometry, aquarium, cameraTargetGeometry, cameraTarget;
 //サイズ
 let sizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
+
+let camera_rot = 0;
+let rot = 0;
 
 window.addEventListener("load", init);
 
@@ -262,15 +265,18 @@ function animate() {
     biont.draw();
   });
 
-  // rot += 0.05; // 毎フレーム角度を0.5度ずつ足していく
+  rot += camera_rot; // 毎フレーム角度を0.5度ずつ足していく
+
   // // ラジアンに変換する
-  // const radian = (rot * Math.PI) / 180;
+  const radian = (rot * Math.PI) / 180;
   // // 角度に応じてカメラの位置を設定
   // camera.position.x = 150 * Math.sin(radian);
   // camera.position.z = 150 * Math.cos(radian);
+  cameraTarget.position.x = 150 * Math.sin(radian);
+  cameraTarget.position.z = 150 * Math.cos(radian);
 
   //カメラの向きを指定
-  camera.lookAt(aquarium.position);
+  camera.lookAt(cameraTarget.position);
 
   // Render
   renderer.render(scene, camera);
@@ -282,14 +288,14 @@ function init() {
 
   //カメラ
   camera = new THREE.PerspectiveCamera(
-    75,
+    90,
     sizes.width / sizes.height,
     0.1,
     1000
   );
 
   // camera.position.set(0, SIZE_OF_AQUARIUM * 1.2, SIZE_OF_AQUARIUM * 1.2);
-  camera.position.set(0, 0, 0);
+  // camera.position.set(0, 0, 0);
   scene.add(camera);
 
   //レンダラー
@@ -308,13 +314,18 @@ function init() {
 
   //ジオメトリ
   sphereGeometry = new THREE.SphereGeometry(SIZE_OF_AQUARIUM, 32, 16);
+  cameraTargetGeometry = new THREE.SphereGeometry(0.0001, 32, 16);
 
   // //メッシュ
   aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
-  scene.add(aquarium);
+  cameraTarget = new THREE.Mesh(cameraTargetGeometry, normalMaterial);
+  scene.add(aquarium, cameraTarget);
+
+  cameraTarget.position.set(0, 0, SIZE_OF_AQUARIUM * 1.2);
 
   //カメラの方向
-  camera.lookAt(aquarium.position);
+  // camera.lookAt(aquarium.position);
+  camera.lookAt(cameraTarget.position);
 
   //ライト
   const directionalLight = new THREE.DirectionalLight("#ffffff", 4);
@@ -359,3 +370,25 @@ function onWindowResize() {
   renderer.setSize(sizes.width, sizes.height);
   renderer.setPixelRatio(window.devicePixelRatio);
 };
+
+document.addEventListener('keydown', keydown_ivent);
+document.addEventListener('keyup', keyup_ivent);
+
+function keydown_ivent(e) {
+	switch (e.key) {
+		case 'ArrowLeft':
+			camera_rot += 1;
+      console.log("left")
+			break;
+		case 'ArrowRight':
+			camera_rot -= 1;
+			break;
+	}
+	
+	return false;
+}
+
+function keyup_ivent(e) {
+	camera_rot = 0;
+	return false; 
+}
