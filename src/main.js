@@ -13,9 +13,13 @@ let sizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
-let camera_rot = 0;
-let rot = 0;
-let cameraInTheAquarium = true;
+let camera_rot_lr = 0;
+let camera_rot_ud = 0;
+let rot_x = 0;
+let rot_y = 0;
+let rot_z = 0;
+let radian_x, radian_y, radian_z;
+let cameraInTheAquarium = false;
 
 window.addEventListener("load", init);
 
@@ -31,18 +35,36 @@ function animate() {
     biont.draw();
   });
 
-  rot += camera_rot; // 毎フレーム角度を0.5度ずつ足していく
+  rot_x += camera_rot_lr; // 毎フレーム角度を0.5度ずつ足していく
+  rot_y += camera_rot_ud;
+  rot_z += camera_rot_lr;
+
+  if ( rot_y > 90 ) {
+    rot_y = 90;
+  } else if ( rot_y < -90 ) {
+    rot_y = -90;
+  }
 
   // // ラジアンに変換する
-  const radian = (rot * Math.PI) / 180;
+  
+    radian_x = (rot_x * Math.PI) / 180;
+    radian_y = (rot_y * Math.PI) / 180;
+    radian_z = (rot_z * Math.PI) / 180;
+  
   // // 角度に応じてカメラの位置を設定
+  const xzDistance = Math.sqrt(cameraTarget.position.z * cameraTarget.position.z + cameraTarget.position.x * cameraTarget.position.x)
   if (cameraInTheAquarium) {
-    cameraTarget.position.x = 150 * Math.sin(radian);
-  cameraTarget.position.z = 150 * Math.cos(radian);
-  camera.lookAt(cameraTarget.position);
+      cameraTarget.position.y = xzDistance * Math.sin(radian_y);
+      cameraTarget.position.z = SIZE_OF_AQUARIUM * 1.4 * Math.cos(radian_z);
+      cameraTarget.position.x = SIZE_OF_AQUARIUM * 1.4 * Math.sin(radian_x);
+    camera.lookAt(cameraTarget.position);
+
   } else {
-    camera.position.x = 150 * Math.sin(radian);
-    camera.position.z = 150 * Math.cos(radian);
+
+    camera.position.x = xzDistance * Math.sin(radian_x);
+    camera.position.z = SIZE_OF_AQUARIUM * 1.4 * Math.cos(radian_z);
+    camera.position.y = SIZE_OF_AQUARIUM * 1.4 * Math.sin(radian_y);
+
     camera.lookAt(aquarium.position);
   }
 
@@ -65,9 +87,9 @@ function init() {
   if (cameraInTheAquarium) {
     camera.position.set(0, 0, 0);
   } else {
-    camera.position.set(0, SIZE_OF_AQUARIUM * 1.2, SIZE_OF_AQUARIUM * 1.2);
+    camera.position.set(0, SIZE_OF_AQUARIUM * 1.4, SIZE_OF_AQUARIUM * 1.4);
   }
-  
+
   scene.add(camera);
 
   //レンダラー
@@ -86,14 +108,14 @@ function init() {
 
   //ジオメトリ
   sphereGeometry = new THREE.SphereGeometry(SIZE_OF_AQUARIUM, 32, 16);
-  cameraTargetGeometry = new THREE.SphereGeometry(0.0001, 32, 16);
+  cameraTargetGeometry = new THREE.SphereGeometry(10, 32, 16);
 
   // //メッシュ
   aquarium = new THREE.Mesh(sphereGeometry, normalMaterial);
   cameraTarget = new THREE.Mesh(cameraTargetGeometry, normalMaterial);
   scene.add(aquarium, cameraTarget);
 
-  cameraTarget.position.set(0, 0, SIZE_OF_AQUARIUM * 1.2);
+  cameraTarget.position.set(0, 0, SIZE_OF_AQUARIUM * 1.4);
 
   //カメラの方向
   if (cameraInTheAquarium) {
@@ -150,14 +172,19 @@ document.addEventListener('keydown', keydown_ivent);
 document.addEventListener('keyup', keyup_ivent);
 
 function keydown_ivent(e) {
-	switch (e.key) {
-		case 'ArrowLeft':
-			camera_rot += 1;
-      console.log("left")
-			break;
-		case 'ArrowRight':
-			camera_rot -= 1;
-			break;
+  switch (e.key) {
+    case 'ArrowLeft':
+      camera_rot_lr += 1;
+      break;
+    case 'ArrowRight':
+      camera_rot_lr -= 1;
+      break;
+    case 'ArrowUp':
+      camera_rot_ud += 2;
+      break;
+    case 'ArrowDown':
+      camera_rot_ud -= 2;
+      break;
     case 'Enter':
       cameraInTheAquarium = !cameraInTheAquarium
       if (cameraInTheAquarium) {
@@ -168,12 +195,13 @@ function keydown_ivent(e) {
         camera.lookAt(aquarium.position);
       }
       break;
-	}
-	
-	return false;
+  }
+
+  return false;
 }
 
-function keyup_ivent(e) {
-	camera_rot = 0;
-	return false; 
+function keyup_ivent() {
+  camera_rot_lr = 0;
+  camera_rot_ud = 0;
+  return false;
 }
