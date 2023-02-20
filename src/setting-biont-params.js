@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+const activeRange = 100;
+
 const params1 = {
     TYPE: "red",
     SPEED: 0.6,
@@ -19,6 +21,7 @@ const params1 = {
         flatShading: true,
     }),
     GEOMETRY: new THREE.BoxGeometry(5, 5, 10),
+    NUMBER: 100,
 }
 const params2 = {
     TYPE: "blue",
@@ -39,6 +42,7 @@ const params2 = {
         flatShading: true,
     }),
     GEOMETRY: new THREE.BoxGeometry(3, 3, 5),
+    NUMBER: 100,
 }
 const params3 = {
     TYPE: "purple",
@@ -59,6 +63,7 @@ const params3 = {
         flatShading: true,
     }),
     GEOMETRY: new THREE.BoxGeometry(5, 10, 15),
+    NUMBER: 200,
 }
 
-export { params1, params2, params3 };
+export { activeRange, params1, params2, params3 };
