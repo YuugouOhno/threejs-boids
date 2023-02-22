@@ -1,10 +1,15 @@
 import { cameraRot } from "./setting-camera";
 import { activeRange } from "./setting-biont-params";
+import { type_of_boids, now_type_of_boids, boids } from "./setting-boids";
+import { params1, params2, params3 } from "./setting-biont-params";
 
+import { fish, box } from "./three-object"
+import scene from "./three-scene";
 import { camera } from "./three-camera";
-import { aquarium, cameraTarget } from "./three-mesh";
+import { aquarium, cameraTarget } from "./three-object";
+import renderer from "./three-renderer";
 
-
+import createBoids from "./createBoids";
 
 const keyControls = () => {
     document.addEventListener('keydown', keydown_ivent);
@@ -35,8 +40,49 @@ const keydown_ivent = (e) => {
                 camera.lookAt(aquarium.position);
             }
             break;
+        case "1":
+            now_type_of_boids[0] = type_of_boids.type_1;
+            for (let i = 0; i < boids.length; i++) {
+                // console.log(boids[i])
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            createBoids(params1);
+            createBoids(params2);
+            createBoids(params3);
+            break
+        case "2":
+            now_type_of_boids[0] = type_of_boids.type_2;
+            for (let i = 0; i < boids.length; i++) {
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            createBoids(params1);
+            createBoids(params2);
+            createBoids(params3);
+            break
+        case "3":
+            now_type_of_boids[0] = type_of_boids.type_3;
+            for (let i = 0; i < boids.length; i++) {
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            createBoids(params1);
+            createBoids(params2);
+            createBoids(params3);
+            break
+        case "4":
+            now_type_of_boids[0] = type_of_boids.type_4;
+            for (let i = 0; i < boids.length; i++) {
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            createBoids(params1);
+            createBoids(params2);
+            createBoids(params3);
+            break
     }
-    console.log(cameraRot)
+
     return false;
 }
 

@@ -4,7 +4,7 @@ import { sizes } from "./setting-sizes";
 import { cameraRot } from "./setting-camera";
 import { activeRange } from "./setting-biont-params";
 
-import { aquarium, cameraTarget } from "./three-mesh";
+import { aquarium, cameraTarget } from "./three-object";
 
 
 const camera = new THREE.PerspectiveCamera(

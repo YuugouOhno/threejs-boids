@@ -1,13 +1,13 @@
 import { cameraRot } from "./setting-camera";
 import { activeRange } from "./setting-biont-params";
 
-import { cameraTarget } from "./three-mesh";
+import { cameraTarget } from "./three-object";
 import { camera } from "./three-camera";
 import renderer from "./three-renderer";
-import { aquarium } from "./three-mesh";
+import { aquarium } from "./three-object";
 import scene from "./three-scene";
 
-import { boids } from "./boids";
+import { boids } from "./setting-boids";
 
 const animate = () => {
     window.requestAnimationFrame(animate);

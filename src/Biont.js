@@ -1,32 +1,70 @@
 import * as THREE from "three";
-import { boids, type_of_bois } from "./boids";
+
+import { boids, number_of_bois, now_type_of_boids, text_list, chars } from "./setting-boids";
+
+import { fish, box } from "./three-object"
+import scene from "./three-scene";
+import { basicMaterial } from "./three-material";
+
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+
+
 
 class Biont {
-    constructor(x, y, z, id, params, scene) {
-        const bodyGeometry = new THREE.OctahedronGeometry(5);
-        const body = new THREE.Mesh(bodyGeometry, params.MATERIAL);
-        body.position.set(0, 0, 0);
-        body.scale.set(1, 1.1, 2)
+    constructor(x, y, z, id, params) {
+        const fontLoader = new FontLoader();
+        switch (now_type_of_boids[0]) {
+            case "fish":
+                this.object = fish(params.SCALE, params.MATERIAL)
+                break
+            case "box":
+                this.object = box(params.SCALE, params.MATERIAL)
+                break
+            case "text":
+                this.object = new THREE.Group();
+                const text = text_list[Math.floor(Math.random() * text_list.length)]
+                fontLoader.load('fonts/helvetiker_regular.typeface.json', (font) => {
+                    const textGeometry = new TextGeometry(text, {
+                        font: font,
+                        size: 3,
+                        height: 0.1,//うすさ
+                        curveSegments: 1,
+                        bevelEnabled: true,
+                        bevelThickness: 0.1,//うすさ
+                        bevelSize: 0.1,
+                        bevelOffset: 0,
+                        bevelSegments: 1
+                    });
+                    const text_obj = new THREE.Mesh(textGeometry, basicMaterial);
+                    text_obj.rotation.set(0, (Math.PI) / 2, 0);
+                    this.object.add(text_obj)
+                });
+                break
+            case "chars":
+                this.object = new THREE.Group();
+                const char = chars.charAt(Math.floor(Math.random() * chars.length));
+                
+                fontLoader.load('fonts/helvetiker_regular.typeface.json', (font) => {
+                    const charGeometry = new TextGeometry(char, {
+                        font: font,
+                        size: 7,
+                        height: 0.5,//うすさ
+                        curveSegments: 1,
+                        bevelEnabled: true,
+                        bevelThickness: 0.1,//うすさ
+                        bevelSize: 0.1,
+                        bevelOffset: 0,
+                        bevelSegments: 1
+                    });
+                    const char_obj = new THREE.Mesh(charGeometry, basicMaterial);
+                    char_obj.rotation.set(0, (Math.PI) / 2, 0);
+                    this.object.add(char_obj)
+                });
+                break
+        };
 
-        const tailGeometry = new THREE.CircleGeometry(10, 32, 0, (Math.PI * 70) / 180);
-        const tail1 = new THREE.Mesh(tailGeometry, params.MATERIAL);
-        tail1.position.set(0, 0, -5);
-        tail1.rotation.set(-35 * (Math.PI) / 180, (Math.PI) / 2, 0);
-        tail1.height = 0.1;
-
-        const tail2 = new THREE.Mesh(tailGeometry, params.MATERIAL);
-        tail2.position.set(0, 0, -5);
-        tail2.rotation.set(-35 * (Math.PI) / 180, -(Math.PI) / 2, 0);
-        tail2.height = 0.1;
-
-        this.object = new THREE.Group();
-        this.object.add(body);
-        this.object.add(tail1);
-        this.object.add(tail2);
-
-        //オブジェクトの描画
-        // this.object = new THREE.Mesh(params.GEOMETRY, params.MATERIAL);
-        scene.add(this.object);
+        scene.add(this.object)
 
         this.speed = params.SPEED; //速度
         this.max_speed = params.MAX_SPEED;
@@ -53,8 +91,8 @@ class Biont {
         this.object.position.copy(this.xyz);
 
         // 群れの種類の追加
-        if (!type_of_bois.includes(this.type)) {
-            type_of_bois.push(this.type);
+        if (!number_of_bois.includes(this.type)) {
+            number_of_bois.push(this.type);
         };
     }
     update() {
