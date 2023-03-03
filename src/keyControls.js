@@ -61,26 +61,26 @@ const keydown_ivent = (e) => {
             // createBoids(params2);
             createBoids(params3);
             break
-        // case "3":
-        //     now_type_of_boids[0] = type_of_boids.type_3;
-        //     for (let i = 0; i < boids.length; i++) {
-        //         scene.remove(boids[i].object);
-        //     }
-        //     boids.splice(0);
-        //     // createBoids(params1);
-        //     // createBoids(params2);
-        //     createBoids(params3);
-        //     break
-        // case "4":
-        //     now_type_of_boids[0] = type_of_boids.type_4;
-        //     for (let i = 0; i < boids.length; i++) {
-        //         scene.remove(boids[i].object);
-        //     }
-        //     boids.splice(0);
-        //     // createBoids(params1);
-        //     // createBoids(params2);
-        //     createBoids(params3);
-        //     break
+        case "3":
+            now_type_of_boids[0] = type_of_boids.type_3;
+            for (let i = 0; i < boids.length; i++) {
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            // createBoids(params1);
+            // createBoids(params2);
+            createBoids(params3);
+            break
+        case "4":
+            now_type_of_boids[0] = type_of_boids.type_4;
+            for (let i = 0; i < boids.length; i++) {
+                scene.remove(boids[i].object);
+            }
+            boids.splice(0);
+            // createBoids(params1);
+            // createBoids(params2);
+            createBoids(params3);
+            break
     }
 
     return false;
