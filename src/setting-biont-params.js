@@ -52,7 +52,7 @@ const params3 = {
     WEIGHT_TO_CENTER: 0.001,
     MATERIAL: purplePhysicalMaterial,
     SCALE: {x:0.7,y:0.7,z:0.7},
-    NUMBER: 200,
+    NUMBER: 400,
 }
 
 const params4 = {

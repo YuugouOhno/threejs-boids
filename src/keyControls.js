@@ -47,8 +47,8 @@ const keydown_ivent = (e) => {
                 scene.remove(boids[i].object);
             }
             boids.splice(0);
-            createBoids(params1);
-            createBoids(params2);
+            // createBoids(params1);
+            // createBoids(params2);
             createBoids(params3);
             break
         case "2":
@@ -57,8 +57,8 @@ const keydown_ivent = (e) => {
                 scene.remove(boids[i].object);
             }
             boids.splice(0);
-            createBoids(params1);
-            createBoids(params2);
+            // createBoids(params1);
+            // createBoids(params2);
             createBoids(params3);
             break
         case "3":
@@ -67,8 +67,8 @@ const keydown_ivent = (e) => {
                 scene.remove(boids[i].object);
             }
             boids.splice(0);
-            createBoids(params1);
-            createBoids(params2);
+            // createBoids(params1);
+            // createBoids(params2);
             createBoids(params3);
             break
         case "4":
@@ -77,8 +77,8 @@ const keydown_ivent = (e) => {
                 scene.remove(boids[i].object);
             }
             boids.splice(0);
-            createBoids(params1);
-            createBoids(params2);
+            // createBoids(params1);
+            // createBoids(params2);
             createBoids(params3);
             break
     }

@@ -26,8 +26,8 @@ function init() {
   scene.add(aquarium, cameraTarget, camera, directionalLight);
 
   // biontを作成
-  createBoids(params1);
-  createBoids(params2);
+  // createBoids(params1);
+  // createBoids(params2);
   createBoids(params3);
 
   // 画面リサイズの設定

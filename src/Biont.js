@@ -162,7 +162,6 @@ class Biont {
         const alignment_vector = new THREE.Vector3();
         boids.filter(biont =>
             this.isInTheFieldOfVision(this.xyz.clone(), this.v.clone(), biont.xyz.clone()) &&
-            this.id !== biont.id &&
             this.type === biont.type
         ).forEach(biont => {
             alignment_vector.add(biont.xyz);
