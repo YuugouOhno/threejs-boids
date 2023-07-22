@@ -51,7 +51,7 @@ const params3 = {
     COHESION_RANGE: 30, // 凝集する範囲
     WEIGHT_TO_CENTER: 0.001,
     MATERIAL: purplePhysicalMaterial,
-    SCALE: {x:0.7,y:0.7,z:0.7},
+    SCALE: {x:0.5,y:0.5,z:0.5},
     NUMBER: 400,
 }
 

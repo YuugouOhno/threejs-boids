@@ -8,7 +8,7 @@ import { basicMaterial } from "./three-material";
 
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
 class Biont {
@@ -23,28 +23,17 @@ class Biont {
                 break
             case "text":
                 this.object = new THREE.Group();
-                const text = text_list[Math.floor(Math.random() * text_list.length)]
-                fontLoader.load('fonts/helvetiker_regular.typeface.json', (font) => {
-                    const textGeometry = new TextGeometry(text, {
-                        font: font,
-                        size: 3,
-                        height: 0.1,//うすさ
-                        curveSegments: 1,
-                        bevelEnabled: true,
-                        bevelThickness: 0.1,//うすさ
-                        bevelSize: 0.1,
-                        bevelOffset: 0,
-                        bevelSegments: 1
-                    });
-                    const text_obj = new THREE.Mesh(textGeometry, basicMaterial);
-                    text_obj.rotation.set(0, (Math.PI) / 2, 0);
-                    this.object.add(text_obj)
+                const loader = new GLTFLoader();
+                loader.load('models/tuna.glb', (gltf) => {
+                    gltf.scene.scale.set(7, 7, 7);
+                    this.object.add(gltf.scene); 
                 });
+
                 break
             case "chars":
                 this.object = new THREE.Group();
                 const char = chars.charAt(Math.floor(Math.random() * chars.length));
-                
+
                 fontLoader.load('fonts/helvetiker_regular.typeface.json', (font) => {
                     const charGeometry = new TextGeometry(char, {
                         font: font,
@@ -125,7 +114,6 @@ class Biont {
         this.getAlignment(); // 整列
         this.getCohesion(); // 集合
         this.setActionRange(); // 行動範囲外に出た際の処理
-        // this.getRepellentForce(); // 自分の周りを追い出す
         this.update(); // 位置ベクトルに反映する
         this.setFaceDirection(); //進行方向を向く
         this.object.position.copy(this.xyz); // 描画
@@ -199,9 +187,6 @@ class Biont {
             const x = this.center_of_boids.distanceTo(this.xyz) - this.action_range_of_boids;
             this.v.sub(this.xyz.clone().multiplyScalar(x * this.weight_to_center));
         }
-    }
-    getRepellentForce() {
-
     }
     setFaceDirection() {
         this.object.lookAt(this.xyz);
